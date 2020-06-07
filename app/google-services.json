@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "837699711631",
+    "firebase_url": "https://firechat-5148c.firebaseio.com",
+    "project_id": "firechat-5148c",
+    "storage_bucket": "firechat-5148c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837699711631:android:d6ad73da4893c715f0f6fa",
+        "android_client_info": {
+          "package_name": "com.icecream.firechat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "837699711631-kdms0or1crvtf61ogmfgqs628lbkhj3e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.icecream.firechat",
+            "certificate_hash": "7c00b0fbcb28ef746f8b5f0d2dd54fefd2652e00"
+          }
+        },
+        {
+          "client_id": "837699711631-v3t3fr6pcs5k2j1v8lo92fnfl5d4tdj8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdVBixWHXxFPTGKN_3GgOc-P7l0KjrW_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "837699711631-v3t3fr6pcs5k2j1v8lo92fnfl5d4tdj8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
