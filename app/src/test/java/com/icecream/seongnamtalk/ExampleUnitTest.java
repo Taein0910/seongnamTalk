@@ -1,4 +1,4 @@
-package com.icecream.firechat;
+package com.icecream.seongnamtalk;
 
 import org.junit.Test;
 
