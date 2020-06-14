@@ -2,14 +2,26 @@ package com.icecream.firechat;
 
 public class Chat {
 
-    static String content;
+    static String username;
+    static String msg;
 
-    public Chat() {
+    public Chat(String idByANDROID_ID, String msg) {
         // Constructor required for Firebase Database
     }
 
-    public String getcontent() {
-        return content;
+    public static String getUsername() {
+        return username;
     }
 
+    public static void setUsername(String username) {
+        Chat.username = username;
+    }
+
+    public static String getMsg() {
+        return msg;
+    }
+
+    public static void setMsg(String msg) {
+        Chat.msg = msg;
+    }
 }

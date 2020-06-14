@@ -3,8 +3,12 @@ package com.icecream.firechat;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -25,7 +29,10 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -37,13 +44,17 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference mReference;
     private DatabaseReference messsageRef=FirebaseDatabase.getInstance().getReference("message");
     private ArrayAdapter<String> adapter;
+    private ArrayAdapter<String> adapter2;
     List<Object> Array = new ArrayList<Object>();
+    List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        final String idByANDROID_ID =
+                Settings.Secure.getString(MainActivity.this.getContentResolver(), Settings.Secure.ANDROID_ID); //디바이스 고유값 가져오기(보낸사람 구분 시 필요)
 
         mListView = (ListView) findViewById(R.id.list_view);
         editdt = (EditText) findViewById(R.id.editText);
@@ -52,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
         initDatabase();
 
         adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, new ArrayList<String>());
+
         mListView.setAdapter(adapter);
+        //mListView.setAdapter(adapter2);
 
         sendbt.setOnClickListener(new Button.OnClickListener() {
             @Override
@@ -61,8 +74,13 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("error", "click");
                     msg = editdt.getText().toString();
                     editdt.setText("");
-                    messsageRef.push().setValue(msg);
-                    hideSoftKeyboard(MainActivity.this);
+
+                    Map<String, String> map = new HashMap<String, String>();
+                    map.put("username", idByANDROID_ID);
+                    map.put("msg", msg);
+
+                    messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
+                    //hideSoftKeyboard(MainActivity.this);
                 } else {
                     Toast.makeText(MainActivity.this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
                 }
@@ -80,15 +98,27 @@ public class MainActivity extends AppCompatActivity {
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
                     // child 내에 있는 데이터만큼 반복합니다.
-                    String msg2 = messageData.getValue().toString();
-                    Array.add(msg2);
-                    adapter.add(" "+msg2);
+                    if(messageData.child("username").getValue().toString().equals(idByANDROID_ID)) {
+
+                        Log.e("tag", "my message");
+                        String msg2 = messageData.child("msg").getValue().toString();
+                        Array.add(msg2);
+                        adapter.add("나: "+msg2);
+                    } else {
+                        Log.e("tag", "another person sended the message");
+
+                        String msg2 = messageData.child("msg").getValue().toString();
+                        Array.add(msg2);
+                        adapter.add(" "+msg2);
+
+                    }
+                    adapter.notifyDataSetChanged();
+                    mListView.setSelection(adapter.getCount()-1);
 
 
                 }
 
-                adapter.notifyDataSetChanged();
-                mListView.setSelection(adapter.getCount()-1);
+
             }
 
             @Override
@@ -140,14 +170,17 @@ public class MainActivity extends AppCompatActivity {
         mReference.removeEventListener(mChild);
     }
 
-    //키보드 내리기 함수
+    /*키보드 내리기 함수
     public static void hideSoftKeyboard(Activity activity) {
         InputMethodManager inputMethodManager =
                 (InputMethodManager) activity.getSystemService(
                         Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(
-                activity.getCurrentFocus().getWindowToken(), 0);
+        activity.getCurrentFocus().getWindowToken(), 0);
     }
+    */
+
+
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
