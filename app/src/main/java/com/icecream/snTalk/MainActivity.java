@@ -1,14 +1,17 @@
-package com.icecream.seongnamtalk;
+package com.icecream.snTalk;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.provider.AlarmClock.EXTRA_MESSAGE;
+
 public class MainActivity extends AppCompatActivity {
 
     private ListView mListView;
@@ -35,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private String msg;
     private FirebaseDatabase mDatabase;
     private DatabaseReference mReference;
-    private DatabaseReference messsageRef=FirebaseDatabase.getInstance().getReference("message");
+    private DatabaseReference messsageRef=FirebaseDatabase.getInstance().getReference("room");
     private ArrayAdapter<String> adapter;
     private ArrayAdapter<String> adapter2;
     List<Object> Array = new ArrayList<Object>();
@@ -46,8 +51,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final String idByANDROID_ID =
-                Settings.Secure.getString(MainActivity.this.getContentResolver(), Settings.Secure.ANDROID_ID); //디바이스 고유값 가져오기(보낸사람 구분 시 필요)
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 
         mListView = (ListView) findViewById(R.id.list_view);
         editdt = (EditText) findViewById(R.id.editText);
@@ -55,34 +62,38 @@ public class MainActivity extends AppCompatActivity {
 
         initDatabase();
 
-        adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, new ArrayList<String>());
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, new ArrayList<String>());
 
         mListView.setAdapter(adapter);
         //mListView.setAdapter(adapter2);
 
+
         sendbt.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (editdt.getText().toString().length() != 0) { //메시지 공백인지 확인
+                if (editdt.getText().toString().length() != 0 && !editdt.getText().toString().equals("text")) { //메시지 공백인지 확인
                     Log.e("error", "click");
                     msg = editdt.getText().toString();
                     editdt.setText("");
 
-                    Map<String, String> map = new HashMap<String, String>();
-                    map.put("username", idByANDROID_ID);
-                    map.put("msg", msg);
+                    if(msg != "Text") {
+                        Map<String, String> map = new HashMap<String, String>();
+                        map.put("name", msg);
+                        map.put("participant", "빈방");
 
-                    messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
-                    //hideSoftKeyboard(MainActivity.this);
+                        messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
+                        //hideSoftKeyboard(MainActivity.this);
+                    } else {Log.e("tag", "text자동전송방지");}
+
                 } else {
-                    Toast.makeText(MainActivity.this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "방 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 }
 
 
             }
         });
 
-        mReference = mDatabase.getReference("message"); // 변경값을 확인할 child 이름
+        mReference = mDatabase.getReference("room"); // 변경값을 확인할 child 이름
         mReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -91,18 +102,20 @@ public class MainActivity extends AppCompatActivity {
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
                     // child 내에 있는 데이터만큼 반복합니다.
-                    if(messageData.child("username").getValue().toString().equals(idByANDROID_ID)) {
+                    if(messageData.child("name").getValue() != null) {
 
                         Log.e("tag", "my message");
-                        String msg2 = messageData.child("msg").getValue().toString();
-                        Array.add(msg2);
-                        adapter.add("나: "+msg2);
-                    } else {
-                        Log.e("tag", "another person sended the message");
+                        String msg2 = messageData.child("name").getValue().toString();
+                        final String participant = messageData.child("participant").getValue().toString();
+                        if(msg2 != "Text") {
+                            Array.add(msg2);
+                            adapter.add(msg2+" ("+participant+")");
+                        }
 
-                        String msg2 = messageData.child("msg").getValue().toString();
-                        Array.add(msg2);
-                        adapter.add(" "+msg2);
+                    } else {
+                        Log.e("tag", "빈방");
+
+
 
                     }
                     adapter.notifyDataSetChanged();
@@ -116,6 +129,23 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        ///////여기 만들 차례!!!(인원수 예외 처리)
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+                String roomName = mListView.getItemAtPosition(position).toString();
+                intent.putExtra("roomName",roomName); /*송신*/
+
+                mReference = mDatabase.getInstance().getReference("room").getRef().child("participant");
+                mReference.setValue("대기중");
+
+                startActivity(intent);
 
             }
         });
@@ -156,6 +186,8 @@ public class MainActivity extends AppCompatActivity {
         };
         mReference.addChildEventListener(mChild);
     }
+
+
 
     @Override
     protected void onDestroy() {

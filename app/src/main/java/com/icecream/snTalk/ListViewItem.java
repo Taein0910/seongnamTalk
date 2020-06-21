@@ -1,4 +1,4 @@
-package com.icecream.seongnamtalk;
+package com.icecream.snTalk;
 
 public class ListViewItem {
     private String message;

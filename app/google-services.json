@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:837699711631:android:d6ad73da4893c715f0f6fa",
         "android_client_info": {
-          "package_name": "com.icecream.seongnamtalk"
+          "package_name": "com.icecream.snTalk"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "837699711631-kdms0or1crvtf61ogmfgqs628lbkhj3e.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.icecream.seongnamtalk",
+            "package_name": "com.icecream.snTalk",
             "certificate_hash": "7c00b0fbcb28ef746f8b5f0d2dd54fefd2652e00"
           }
         },
