@@ -27,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     List<Object> Array = new ArrayList<Object>();
     List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
+    private String key;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,12 +79,15 @@ public class MainActivity extends AppCompatActivity {
                     editdt.setText("");
 
                     if(msg != "Text") {
-                        Map<String, String> map = new HashMap<String, String>();
-                        map.put("name", msg);
-                        map.put("participant", "빈방");
 
-                        messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
-                        //hideSoftKeyboard(MainActivity.this);
+                            Map<String, String> map = new HashMap<String, String>();
+                            map.put("name", msg);
+                            map.put("participant", "0");
+
+                            messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
+                            //hideSoftKeyboard(MainActivity.this);
+
+
                     } else {Log.e("tag", "text자동전송방지");}
 
                 } else {
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 adapter.clear();
 
+
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
                     // child 내에 있는 데이터만큼 반복합니다.
@@ -106,10 +112,11 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.e("tag", "my message");
                         String msg2 = messageData.child("name").getValue().toString();
+                        key = messageData.child("participant").getValue().toString();
                         final String participant = messageData.child("participant").getValue().toString();
                         if(msg2 != "Text") {
                             Array.add(msg2);
-                            adapter.add(msg2+" ("+participant+")");
+                            adapter.add(msg2+" ("+participant+"명)");
                         }
 
                     } else {
@@ -129,24 +136,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, "오류가 발생했습니다 :"+databaseError.toString(), Toast.LENGTH_SHORT).show();
 
             }
         });
 
-        ///////여기 만들 차례!!!(인원수 예외 처리)
+        ///////인원수 예외 처리 필요!!!!!!!!!!
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                //Log.e("tag",);
+                FirebaseDatabase.getInstance().getReference().child("room").child("participant").setValue("1");
+
                 Intent intent = new Intent(MainActivity.this, ChatActivity.class);
                 String roomName = mListView.getItemAtPosition(position).toString();
+                roomName = roomName.replace(roomName.substring(roomName.length()-5, roomName.length()), "");
                 intent.putExtra("roomName",roomName); /*송신*/
-
-                mReference = mDatabase.getInstance().getReference("room").getRef().child("participant");
-                mReference.setValue("대기중");
-
                 startActivity(intent);
-
             }
         });
     }
@@ -181,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
+                Toast.makeText(MainActivity.this, "오류가 발생했습니다 :"+databaseError.toString(), Toast.LENGTH_SHORT).show();
 
             }
         };
