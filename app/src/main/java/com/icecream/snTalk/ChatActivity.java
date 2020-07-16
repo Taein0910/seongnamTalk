@@ -44,6 +44,9 @@ public class ChatActivity extends AppCompatActivity {
     List<Object> Array = new ArrayList<Object>();
     List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
+    private String roomKey;
+    private int roomParticipant;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +66,9 @@ public class ChatActivity extends AppCompatActivity {
 
         Intent intent = getIntent(); //방 정보 데이터 수신
         String roomName = intent.getExtras().getString("roomName");
+        roomKey = intent.getExtras().getString("roomKey");
+        roomParticipant = intent.getExtras().getInt("roomParticipant")+1;
+
         mTextview.setText(roomName);
 
         final DatabaseReference messsageRef=FirebaseDatabase.getInstance().getReference("message").child(roomName);
@@ -196,7 +202,15 @@ public class ChatActivity extends AppCompatActivity {
     }
     */
 
+    @Override
+    public void onBackPressed() {
+        FirebaseDatabase.getInstance().getReference().child("room").child(roomKey).child("participant").setValue(roomParticipant-1);
+        Intent intent = new Intent(ChatActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
+        super.onBackPressed();
 
+    }
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {

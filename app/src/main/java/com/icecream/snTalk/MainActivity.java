@@ -1,7 +1,10 @@
 package com.icecream.snTalk;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
     private String key;
+    private int debugCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +117,11 @@ public class MainActivity extends AppCompatActivity {
                         Log.e("tag", "my message");
                         String msg2 = messageData.child("name").getValue().toString();
                         key = messageData.child("participant").getValue().toString();
-                        final String participant = messageData.child("participant").getValue().toString();
+                        String participant = messageData.child("participant").getValue().toString();
+                        if(Integer.parseInt(participant)<0) {
+                            participant="0";
+
+                        }
                         if(msg2 != "Text") {
                             Array.add(msg2);
                             adapter.add(msg2+" ("+participant+"명)");
@@ -144,19 +152,71 @@ public class MainActivity extends AppCompatActivity {
         ///////인원수 예외 처리 필요!!!!!!!!!!
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
 
-                //Log.e("tag",);
-                FirebaseDatabase.getInstance().getReference().child("room").child("participant").setValue("1");
+                String subString = mListView.getItemAtPosition(position).toString();
+                final int currentParticipant = Integer.parseInt(subString.substring(subString.length()-3, subString.length()-2));
+                if(currentParticipant >= 2){
+                    Toast.makeText(MainActivity.this, "이미 정원이 대화중인 채팅방입니다.", Toast.LENGTH_SHORT).show();
+                } else{
+                    mReference.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if(debugCode==0) {
+                                final String[] roomArray = new String[10000];
 
-                Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                String roomName = mListView.getItemAtPosition(position).toString();
-                roomName = roomName.replace(roomName.substring(roomName.length()-5, roomName.length()), "");
-                intent.putExtra("roomName",roomName); /*송신*/
-                startActivity(intent);
+
+                                int i=0;
+                                for (DataSnapshot child : dataSnapshot.getChildren()) {
+
+                                    roomArray[i] = child.getKey();
+                                    i++;
+                                }
+
+                                Log.e("debugging", "het");
+                                goToChat(roomArray[position], position, currentParticipant);
+                            }
+
+
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+
+
+                }
+
+
             }
         });
     }
+
+    private void goToChat(String key, int position, int curParticipant) {
+debugCode=1;
+        if(curParticipant==0) {
+            FirebaseDatabase.getInstance().getReference().child("room").child(key).child("participant").setValue(1);
+        } else if(curParticipant==1) {
+            FirebaseDatabase.getInstance().getReference().child("room").child(key).child("participant").setValue(2);
+        }
+
+        Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+        String roomName = mListView.getItemAtPosition(position).toString();
+        roomName = roomName.replace(roomName.substring(roomName.length()-5, roomName.length()), "");
+        intent.putExtra("roomName",roomName); /*송신*/
+        intent.putExtra("roomKey", key);
+        intent.putExtra("roomParticipant", curParticipant);
+        startActivity(intent);
+
+        finish();
+    }
+
+
+
 
     private void initDatabase() {
 
