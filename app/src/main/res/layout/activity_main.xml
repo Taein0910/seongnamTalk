@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="채팅방을 찾아보세요"
+        android:text="채팅방"
         android:textColor="#000"
         android:textStyle="bold"
         android:textSize="30dp"
@@ -41,7 +41,7 @@
         android:paddingLeft="15dp"
         android:paddingRight="15dp"
         android:paddingTop="10px"
-        android:paddingBottom="10px">
+        android:paddingBottom="20px">
 
 
         <com.rengwuxian.materialedittext.MaterialEditText
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:hint="새로운 방을 개설해보세요."
+            android:hint="개설할 방 이름을 입력하세요."
             android:background="@null"
             />
 

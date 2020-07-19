@@ -28,11 +28,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import es.dmoral.toasty.Toasty;
 
 import static android.provider.AlarmClock.EXTRA_MESSAGE;
 
@@ -83,10 +88,14 @@ public class MainActivity extends AppCompatActivity {
                     editdt.setText("");
 
                     if(msg != "Text") {
+                        SimpleDateFormat format1 = new SimpleDateFormat ( "yyyy-MM-dd");
+                        Date time = new Date();
+                        String nowtime = format1.format(time);
 
                             Map<String, String> map = new HashMap<String, String>();
                             map.put("name", msg);
                             map.put("participant", "0");
+                            map.put("lastTime", nowtime);
 
                             messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
                             //hideSoftKeyboard(MainActivity.this);
@@ -95,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {Log.e("tag", "text자동전송방지");}
 
                 } else {
-                    Toast.makeText(MainActivity.this, "방 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                    Toasty.warning(MainActivity.this, "방 이름을 입력해주세요.", Toast.LENGTH_SHORT).show();
                 }
 
 
@@ -127,6 +136,37 @@ public class MainActivity extends AppCompatActivity {
                             adapter.add(msg2+" ("+participant+"명)");
                         }
 
+                        try{ // String Type을 Date Type으로 캐스팅하면서 생기는 예외로 인해 여기서 예외처리 해주지 않으면 컴파일러에서 에러가 발생해서 컴파일을 할 수 없다.
+                            String chatDate = messageData.child("lastTime").getValue().toString();
+                            SimpleDateFormat format1 = new SimpleDateFormat("yyyy-mm-dd");
+                            // date1, date2 두 날짜를 parse()를 통해 Date형으로 변환.
+                            Date FirstDate = format1.parse(chatDate);
+
+                            SimpleDateFormat format2 = new SimpleDateFormat ( "yyyy-MM-dd");
+                            Date time = new Date();
+                            String nowtime = format1.format(time);
+                            Date SecondDate = format1.parse(nowtime);
+
+                            long calDate = FirstDate.getTime() - SecondDate.getTime();
+
+                            //현재 날짜와 채팅방 마지막 채팅 시간의 차이 일수
+                            long calDateDays = calDate / ( 24*60*60*1000);
+
+                            calDateDays = Math.abs(calDateDays);
+                            if(calDateDays >= 1) {
+                                Log.e("seongnamTalk", "오래된 채팅방 삭제");
+                                messageData.getRef().removeValue(); //채팅방 삭제
+                            } else {
+                                //
+                            }
+                        }
+                        catch(ParseException e)
+                        {
+                            // 예외 처리
+                        }
+
+
+
                     } else {
                         Log.e("tag", "빈방");
 
@@ -144,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(MainActivity.this, "오류가 발생했습니다 :"+databaseError.toString(), Toast.LENGTH_SHORT).show();
+                Toasty.error(MainActivity.this, "오류가 발생했습니다 :"+databaseError.toString(), Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -157,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 String subString = mListView.getItemAtPosition(position).toString();
                 final int currentParticipant = Integer.parseInt(subString.substring(subString.length()-3, subString.length()-2));
                 if(currentParticipant >= 2){
-                    Toast.makeText(MainActivity.this, "이미 정원이 대화중인 채팅방입니다.", Toast.LENGTH_SHORT).show();
+                    Toasty.error(MainActivity.this, "이미 정원이 대화중인 채팅방입니다.", Toast.LENGTH_SHORT).show();
                 } else{
                     mReference.addValueEventListener(new ValueEventListener() {
                         @Override

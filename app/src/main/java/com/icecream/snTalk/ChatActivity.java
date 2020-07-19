@@ -25,10 +25,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import es.dmoral.toasty.Toasty;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -41,7 +45,7 @@ public class ChatActivity extends AppCompatActivity {
     private DatabaseReference mReference;
     private ArrayAdapter<String> adapter;
     private ArrayAdapter<String> adapter2;
-    List<Object> Array = new ArrayList<Object>();
+    List<String> Array = new ArrayList<String>();
     List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
     private String roomKey;
@@ -75,7 +79,8 @@ public class ChatActivity extends AppCompatActivity {
 
         initDatabase();
 
-        adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, new ArrayList<String>());
+        adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.TextView1, new ArrayList<String>());
+        adapter2 = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.text_message_time, new ArrayList<String>());
 
         mListView.setAdapter(adapter);
         //mListView.setAdapter(adapter2);
@@ -89,16 +94,26 @@ public class ChatActivity extends AppCompatActivity {
                     editdt.setText("");
 
                     if(msg != "Text" && msg != "text") {
+                        SimpleDateFormat format2 = new SimpleDateFormat ( "MM-dd HH:mm");
+                        Date time2 = new Date();
+                        String nowtime2 = format2.format(time2);
+
                         Map<String, String> map = new HashMap<String, String>();
                         map.put("username", idByANDROID_ID);
                         map.put("msg", msg);
+                        map.put("timestamp", nowtime2);
+
+                        SimpleDateFormat format1 = new SimpleDateFormat ( "yyyy-MM-dd");
+                        Date time = new Date();
+                        String nowtime = format1.format(time);
+                        FirebaseDatabase.getInstance().getReference().child("room").child(roomKey).child("lastTime").setValue(nowtime);
 
                         messsageRef.push().setValue(map);  // 기본 database 하위 message라는 child에 chatData를 list로 만들기
                         //hideSoftKeyboard(MainActivity.this);
                     } else {Log.e("tag", "text자동전송방지");}
 
                 } else {
-                    Toast.makeText(ChatActivity.this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
+                    Toasty.warning(ChatActivity.this, "메시지를 입력해주세요.", Toast.LENGTH_SHORT).show();
                 }
 
 
@@ -110,6 +125,7 @@ public class ChatActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 adapter.clear();
+                adapter2.clear();
 
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
@@ -118,18 +134,26 @@ public class ChatActivity extends AppCompatActivity {
 
                         Log.e("tag", "my message");
                         String msg2 = messageData.child("msg").getValue().toString();
+                        String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
                             Array.add(msg2);
+                            Array.add(timestamp);
+
                             adapter.add("나: "+msg2);
+                            adapter2.add(timestamp);
                         }
 
                     } else {
                         Log.e("tag", "another person sended the message");
 
                         String msg2 = messageData.child("msg").getValue().toString();
+                        String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
                             Array.add(msg2);
-                            adapter.add(" "+msg2);
+                            Array.add(timestamp);
+                            adapter.add(msg2);
+                            adapter2.add(timestamp);
+
                         }
 
 
