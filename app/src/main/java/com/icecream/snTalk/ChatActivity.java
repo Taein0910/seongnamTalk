@@ -50,6 +50,7 @@ public class ChatActivity extends AppCompatActivity {
     private ChildEventListener mChild;
     private String roomKey;
     private int roomParticipant;
+    ArrayList<Chat> ListViewAdapter;
 
 
     @Override
@@ -79,8 +80,8 @@ public class ChatActivity extends AppCompatActivity {
 
         initDatabase();
 
-        adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.TextView1, new ArrayList<String>());
-        adapter2 = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.text_message_time, new ArrayList<String>());
+        final ListViewAdapter adapter = new ListViewAdapter(this,ListViewAdapter);
+        //adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.TextView1, new ArrayList<String>());
 
         mListView.setAdapter(adapter);
         //mListView.setAdapter(adapter2);
@@ -124,8 +125,6 @@ public class ChatActivity extends AppCompatActivity {
         mReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                adapter.clear();
-                adapter2.clear();
 
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
@@ -137,10 +136,9 @@ public class ChatActivity extends AppCompatActivity {
                         String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
                             Array.add(msg2);
-                            Array.add(timestamp);
+                            Chat.setMsg("나:"+msg2);
+                            Chat.setTimestamp(timestamp);
 
-                            adapter.add("나: "+msg2);
-                            adapter2.add(timestamp);
                         }
 
                     } else {
@@ -150,10 +148,8 @@ public class ChatActivity extends AppCompatActivity {
                         String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
                             Array.add(msg2);
-                            Array.add(timestamp);
-                            adapter.add(msg2);
-                            adapter2.add(timestamp);
-
+                            Chat.setMsg(msg2);
+                            Chat.setTimestamp(timestamp);
                         }
 
 
