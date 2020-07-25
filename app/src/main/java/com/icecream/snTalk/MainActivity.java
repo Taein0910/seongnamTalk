@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
         //mListView.setAdapter(adapter2);
 
 
+
         sendbt.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -153,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                             long calDateDays = calDate / ( 24*60*60*1000);
 
                             calDateDays = Math.abs(calDateDays);
-                            if(calDateDays >= 1) {
+                            if(calDateDays >= 2) {
                                 Log.e("seongnamTalk", "오래된 채팅방 삭제");
                                 messageData.getRef().removeValue(); //채팅방 삭제
                             } else {
@@ -203,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             if(debugCode==0) {
-                                final String[] roomArray = new String[10000];
+                                final String[] roomArray = new String[1000000];
 
 
                                 int i=0;

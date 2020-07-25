@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,6 +25,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,20 +46,26 @@ public class ChatActivity extends AppCompatActivity {
     private TextView mTextview;
     private FirebaseDatabase mDatabase;
     private DatabaseReference mReference;
-    private ArrayAdapter<String> adapter;
+    private CustomAdapter adapter;
     private ArrayAdapter<String> adapter2;
     List<String> Array = new ArrayList<String>();
     List<Object> Array2 = new ArrayList<Object>();
     private ChildEventListener mChild;
     private String roomKey;
     private int roomParticipant;
-    ArrayList<Chat> ListViewAdapter;
+    JSONObject jsonObject=new JSONObject();
+    public static ArrayList<Chat> myModels = new ArrayList<Chat>();
+    public static CustomAdapter pfAdapter1;
+
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        adapter = new CustomAdapter(ChatActivity.this, R.layout.mylistitem ,myModels);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -68,7 +77,7 @@ public class ChatActivity extends AppCompatActivity {
         editdt = (EditText) findViewById(R.id.editText);
         sendbt = (Button) findViewById(R.id.sendbt);
         mTextview = (TextView) findViewById(R.id.currentRoomName);
-
+        mListView.setAdapter(adapter);
         Intent intent = getIntent(); //방 정보 데이터 수신
         String roomName = intent.getExtras().getString("roomName");
         roomKey = intent.getExtras().getString("roomKey");
@@ -78,13 +87,15 @@ public class ChatActivity extends AppCompatActivity {
 
         final DatabaseReference messsageRef=FirebaseDatabase.getInstance().getReference("message").child(roomName);
 
+
         initDatabase();
 
-        final ListViewAdapter adapter = new ListViewAdapter(this,ListViewAdapter);
+        //final ListViewAdapter adapter = new ListViewAdapter(this,ListViewAdapter);
+        //mListView.setAdapter(adapter);
         //adapter = new ArrayAdapter<String>(this, R.layout.mylistitem, R.id.TextView1, new ArrayList<String>());
 
-        mListView.setAdapter(adapter);
-        //mListView.setAdapter(adapter2);
+
+
 
         sendbt.setOnClickListener(new Button.OnClickListener() {
             @Override
@@ -125,6 +136,7 @@ public class ChatActivity extends AppCompatActivity {
         mReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                adapter.clear();
 
                 for (DataSnapshot messageData : dataSnapshot.getChildren()) {
 
@@ -135,9 +147,12 @@ public class ChatActivity extends AppCompatActivity {
                         String msg2 = messageData.child("msg").getValue().toString();
                         String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
-                            Array.add(msg2);
-                            Chat.setMsg("나:"+msg2);
-                            Chat.setTimestamp(timestamp);
+                            //Array.add(msg2);
+                            //adapter.add("나: "+msg2);
+                            Chat model = new Chat();
+                            model.msg = "나: "+msg2;
+                            model.time = timestamp;
+                            myModels.add(model);
 
                         }
 
@@ -147,13 +162,22 @@ public class ChatActivity extends AppCompatActivity {
                         String msg2 = messageData.child("msg").getValue().toString();
                         String timestamp = messageData.child("timestamp").getValue().toString();
                         if(msg2 != "Text" && msg2 != "text") {
-                            Array.add(msg2);
-                            Chat.setMsg(msg2);
-                            Chat.setTimestamp(timestamp);
+                            //Array.add(msg2);
+                            //adapter.add(msg2);
+                            Chat model = new Chat();
+                            model.msg = msg2;
+                            model.time = timestamp;
+                            myModels.add(model);
+                            if(msg2.contains("https://") || msg2.contains("http://")) {
+                                Toasty.warning(ChatActivity.this, "상대방이 보낸 링크가 신뢰할 수 있는 링크인지 확인하고 클릭하세요.").show();
+                            }
                         }
 
 
                     }
+
+
+
                     adapter.notifyDataSetChanged();
                     mListView.setSelection(adapter.getCount()-1);
 
@@ -231,6 +255,7 @@ public class ChatActivity extends AppCompatActivity {
         super.onBackPressed();
 
     }
+
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {

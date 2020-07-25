@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/TextView1"
-    android:background="@drawable/outcoming_bubble"
-    android:layout_alignParentRight="true"
-    android:layout_width="wrap_content"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:text="this is a message"
-    android:textSize="17dp"
-    android:padding="15dp"
-    android:textColor="#000"
-    android:textAlignment="textEnd"
-    android:layout_gravity="end"
-    />
+    android:id="@+id/listview_layout">
+    <TextView
+        android:id="@+id/listview_firsttextview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        >
+    </TextView>
+
+    <TextView
+        android:id="@+id/listview_secondtextview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2"
+        >
+    </TextView>
+</LinearLayout>
